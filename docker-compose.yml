@@ -1,0 +1,72 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tda-geo:latest
+    container_name: tda-geo
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    tty: true
+    stdin_open: true
+    pull_policy: never
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      NVIDIA_VISIBLE_DEVICES: "all"
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+
+  dev:
+    image: mambaorg/micromamba:1.5.10-jammy
+    container_name: tda-geo-dev
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - conda_store:/opt/conda
+    tty: true
+    stdin_open: true
+    environment:
+      MAMBA_NO_BANNER: "1"
+      MAMBA_ROOT_PREFIX: /opt/conda
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  jupyter:
+    image: tda-geo:latest
+    container_name: tda-geo-jupyter
+    working_dir: /workspace
+    command: >
+      bash -c "
+      micromamba run -n app python -m jupyter lab
+      --ip=0.0.0.0 --no-browser
+      --NotebookApp.token='' --NotebookApp.password=''
+      --NotebookApp.allow_origin='*'
+      "
+    volumes:
+      - .:/workspace
+    ports:
+      - "8888:8888"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+    environment:
+      NVIDIA_VISIBLE_DEVICES: "all"
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+
+volumes:
+  conda_store:

@@ -1,0 +1,45 @@
+name: app
+channels:
+  - pytorch         # PyTorch + meta 'pytorch-cuda' come from HERE
+  - nvidia          # low-level CUDA libs that torch depends on
+  - conda-forge     # geo/science stack
+  - nodefaults
+dependencies:
+  - python=3.11
+
+  # stable ABI for geo
+  - numpy=1.26.*
+  - pandas=2.2.*
+  - scipy
+  - scikit-learn
+  - matplotlib-base
+
+  # geospatial (conda-forge builds)
+  - geopandas
+  - shapely=2.0.*
+  - pyogrio
+  - pyproj
+  - gdal
+
+  # GPU stack (correct channels)
+  - pytorch::pytorch=2.4.*
+  - pytorch::pytorch-cuda=12.1   # <-- key fix: from pytorch channel
+  - cupy
+  - whitebox
+  - ripser
+  - persim
+
+  # distributed + utils
+  - dask
+  - distributed
+  - requests
+  - psutil
+
+  # notebooks / IDE
+  - jupyterlab
+  - ipykernel
+
+  # typing stubs (pure Python via pip)
+  - pip
+  - pip:
+      - scipy-stubs
