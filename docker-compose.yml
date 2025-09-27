@@ -1,39 +1,21 @@
 services:
-  app:
+  # This service is for PyCharm and direct shell access.
+  # It starts an idle container that waits for commands.
+  dev:
     build:
       context: .
       dockerfile: Dockerfile
     image: tda-geo:latest
-    container_name: tda-geo
-    working_dir: /workspace
-    volumes:
-      - .:/workspace
-    tty: true
-    stdin_open: true
-    pull_policy: never
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    environment:
-      NVIDIA_VISIBLE_DEVICES: "all"
-      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
-
-  dev:
-    image: mambaorg/micromamba:1.5.10-jammy
     container_name: tda-geo-dev
     working_dir: /workspace
+    # This command keeps the container running indefinitely without starting a server.
+    command: tail -f /dev/null
     volumes:
       - .:/workspace
       - conda_store:/opt/conda
-    tty: true
-    stdin_open: true
-    environment:
-      MAMBA_NO_BANNER: "1"
-      MAMBA_ROOT_PREFIX: /opt/conda
+    ports:
+      # Expose the port so PyCharm's auto-started server is accessible.
+      - "8888:8888"
     deploy:
       resources:
         reservations:
@@ -42,16 +24,17 @@ services:
               count: all
               capabilities: [gpu]
 
+  # This service is for standalone, command-line use.
+  # It directly starts a Jupyter Lab server.
   jupyter:
-    image: tda-geo:latest
+    image: tda-geo:latest # Uses the SAME image as the 'dev' service
     container_name: tda-geo-jupyter
     working_dir: /workspace
     command: >
       bash -c "
       micromamba run -n app python -m jupyter lab
-      --ip=0.0.0.0 --no-browser
+      --ip=0.0.0.0 --port=8888 --allow-root --no-browser
       --NotebookApp.token='' --NotebookApp.password=''
-      --NotebookApp.allow_origin='*'
       "
     volumes:
       - .:/workspace
@@ -63,10 +46,7 @@ services:
           devices:
             - driver: nvidia
               count: all
-              capabilities: [ gpu ]
-    environment:
-      NVIDIA_VISIBLE_DEVICES: "all"
-      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+              capabilities: [gpu]
 
 volumes:
   conda_store:
