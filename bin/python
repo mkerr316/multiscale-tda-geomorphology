@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /opt/conda/envs/app/bin/python "$@"

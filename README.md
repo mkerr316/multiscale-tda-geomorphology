@@ -28,6 +28,7 @@ This workflow is ideal for interactive development, debugging, and using PyCharm
     * In PyCharm, go to `File > Settings > Project > Python Interpreter`.
     * Click **Add Interpreter** and select **On Docker Compose...**.
     * PyCharm will detect your `docker-compose.yml`. Select the **`dev`** service.
+    * Set the interpreter path to `/workspace/bin/python`, which is a repository wrapper that forwards to the environment Python inside the container.
     * PyCharm is now configured. When you open a `.ipynb` file, it will automatically use its "Default (Auto-start)" Jupyter server configuration to launch and manage a server inside the running `dev` container.
 
 ### Workflow 2: Standalone Jupyter Lab (Browser-based)
