@@ -1,64 +1,40 @@
-# Multiscale TDA Geomorphology Docker Environment
+# TDA Geo Dev — Portable, Fast, and PyCharm-Friendly
 
-This repository provides a reproducible Docker environment for the multiscale TDA project, built with Mamba for fast and reliable dependency management.
+## Why this layout?
+
+* **Fast**: Conda env cached in a named volume.
+* **Portable**: Volume is **auto-seeded** on first run from the baked image; new machines work immediately.
+* **PyCharm-friendly**: Stable interpreter path `/opt/conda/envs/app/bin/python`; symlink at `/workspace/bin/python` also available.
+* **No shadowing**: Your code is mounted at `/workspace/src`, so `/workspace/bin` remains intact.
 
 ## Quickstart
 
-1.  **Build the Docker Image:**
-    This command builds the `tda-geo:latest` image that all services will use. You only need to run this once, or again after you modify the `environment.yml` or `Dockerfile`.
-    ```bash
-    make build
-    ```
+```bash
+make rebuild           # clean build + start dev
+```
 
-## Usage Workflows
+In PyCharm:
 
-This setup supports multiple development workflows. Choose the one that best fits your needs.
+* Interpreter: **Docker Compose** → service **`dev`** → Python path: **`/opt/conda/envs/app/bin/python`**
+* Jupyter: In a notebook, choose **Default (Managed/Auto-start)**
 
-### Workflow 1: PyCharm IDE (Recommended)
+Optional external Jupyter:
 
-This workflow is ideal for interactive development, debugging, and using PyCharm's built-in Jupyter features.
+```bash
+make up-jupyter
+# open http://localhost:8888
+```
 
-1.  **Start the development container:**
-    ```bash
-    make up-dev
-    ```
-    *(This starts an idle container named `tda-geo-dev` in the background.)*
+## Common tasks
 
-2.  **Configure PyCharm Interpreter:**
-    * In PyCharm, go to `File > Settings > Project > Python Interpreter`.
-    * Click **Add Interpreter** and select **On Docker Compose...**.
-    * PyCharm will detect your `docker-compose.yml`. Select the **`dev`** service.
-    * PyCharm is now configured. When you open a `.ipynb` file, it will automatically use its "Default (Auto-start)" Jupyter server configuration to launch and manage a server inside the running `dev` container.
+```bash
+make shell        # shell into dev
+make logs-dev     # follow dev logs (shows initial seeding message on first run)
+make seed-reset   # drop conda volume; next start reseeds from image
+make prune        # cleanup
+```
 
-### Workflow 2: Standalone Jupyter Lab (Browser-based)
+## When environment.yml changes
 
-Use this method if you prefer to work directly in Jupyter Lab in your web browser.
-
-1.  **Start the Jupyter service:**
-    ```bash
-    make up-jupyter
-    ```
-    *(This starts a container named `tda-geo-jupyter` that immediately runs the Jupyter Lab server.)*
-
-2.  **Access in Browser:**
-    * Open your web browser and navigate to: `http://localhost:8888`
-
-### Workflow 3: Command-Line Shell Access
-
-For running scripts or using command-line tools directly inside the container.
-
-1.  **Ensure the dev container is running:**
-    ```bash
-    make up-dev
-    ```
-
-2.  **Get a bash shell:**
-    ```bash
-    make shell
-    ```
-
-## Common Makefile Commands
-
-* `make down`: Stop and remove all containers defined in this project.
-* `make gpu`: Check for CUDA availability inside the `dev` container.
-* `make prune`: Clean up all unused Docker containers, images, and system resources.
+* Rebuild the image: `make rebuild` (or `docker compose build --no-cache`)
+* If you want the persisted volume to reflect the new env, run `make seed-reset` to force a fresh seed on next start.

@@ -13,6 +13,8 @@ dependencies:
   - scipy
   - scikit-learn
   - matplotlib-base
+  - adjustText
+  - titlecase
 
   # geospatial (conda-forge builds)
   - geopandas
@@ -20,6 +22,7 @@ dependencies:
   - pyogrio
   - pyproj
   - gdal
+  - contextily
 
   # GPU stack (correct channels)
   - pytorch::pytorch=2.4.*
@@ -36,10 +39,17 @@ dependencies:
   - psutil
 
   # notebooks / IDE
-  - jupyterlab
   - ipykernel
+  - notebook
+  - jupyterlab
+  - jupyter_server
+
+  # other
+  - tqdm
+  - ipywidgets
 
   # typing stubs (pure Python via pip)
   - pip
   - pip:
       - scipy-stubs
+      - jupyter-server-proxy

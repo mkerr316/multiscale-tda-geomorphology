@@ -1,32 +1,37 @@
-.PHONY: build up-dev up-jupyter down shell prune gpu
+SHELL := /usr/bin/env bash
+COMPOSE := docker compose -p tda-geo -f docker-compose.yml
 
-# Build the shared Docker image for all services
-build:
-	docker compose build
+.PHONY: up up-dev up-jupyter down rebuild logs-dev logs-jupyter ps seed-reset prune
 
-# --- PyCharm Workflow ---
-# Start the idle 'dev' container for PyCharm to connect to
+up: up-dev up-jupyter
+
 up-dev:
-	docker compose up -d dev
+	$(COMPOSE) up -d dev
 
-# --- Standalone Workflow ---
-# Start the 'jupyter' service which runs the server directly
 up-jupyter:
-	docker compose up -d jupyter
+	$(COMPOSE) up -d jupyter
 
-# --- Common Commands ---
-# Stop and remove all containers defined in this compose file
 down:
-	docker compose down
+	$(COMPOSE) down --remove-orphans
 
-# Get a bash shell inside the running 'dev' container
-shell:
-	docker exec -it tda-geo-dev bash
+rebuild:
+	$(COMPOSE) down --remove-orphans
+	$(COMPOSE) build --pull --no-cache
+	$(COMPOSE) up -d dev
 
-# Check if CUDA is available in the 'dev' container
-gpu:
-	docker exec -it tda-geo-dev python -c "import torch;print('CUDA OK:',torch.cuda.is_available(),'Devices:',torch.cuda.device_count())"
+logs-dev:
+	docker logs -f --tail=200 tda-geo-dev
 
-# Clean up unused Docker resources
+logs-jupyter:
+	docker logs -f --tail=200 tda-geo-jupyter
+
+ps:
+	$(COMPOSE) ps
+
+seed-reset:
+	# blow away the conda volume to force reseed next start
+	-docker volume rm $$(docker volume ls -q | grep tda-geo_conda_store)
+	$(COMPOSE) up -d dev
+
 prune:
-	docker container prune -f && docker image prune -f && docker system prune -f
+	docker system prune -f

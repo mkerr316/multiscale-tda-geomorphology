@@ -57,7 +57,7 @@ For the predictive track ($H_2$), we will model erosion potential using the Wate
 
 * **Week 1: Scoping, Data Acquisition & Toolchain Finalization**
     * [x] Finalize study area polygons and hold-out validation area.
-    * [ ] Finalize Toolchain: Document libraries for TDA, Geomorphometry, Sampling, and Parallelism.
+    * [x] Finalize Toolchain: Document libraries for TDA, Geomorphometry, Sampling, and Parallelism.
     * [ ] Acquire Raw Data: Download all necessary data for WEPP modeling (DEMs, climate, soils).
     * [ ] Define Covariate Layers: Finalize a comprehensive, three-tiered suite of predictor covariates:
         * Tier 1 (Foundational): DEM, slope, multiscale local relief, and multiscale wavelet-based roughness.
