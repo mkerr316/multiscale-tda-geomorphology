@@ -1,0 +1,54 @@
+paths:
+  # --- Foundational Data ---
+  data_dir: "data"
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  outputs_dir: "outputs"
+
+  # --- Key Inputs ---
+  provinces_input: "data/raw/boundaries/study_provinces.shp"
+
+  # --- Key Intermediate Products (Inputs for downstream tasks) ---
+  study_areas: "data/processed/study_areas.gpkg"
+  external_holdout: "data/processed/external_holdout.gpkg"
+
+  # --- Raw Data Storage (Products of data acquisition) ---
+  dem_dir: "data/raw/dem_30m"
+  climate_dir: "data/raw/climate_prism"
+  soils_dir: "data/raw/soils_gnatsgo"
+
+data_sources:
+  dem:
+    stac_url: "https://planetarycomputer.microsoft.com/api/stac/v1"
+    collection: "3dep-seamless"
+  prism:
+    # Configuration for downloading daily data required for WEPP .cli files
+    # These are downloaded from the Planetary Computer STAC endpoint
+    daily_variables:
+      - "ppt"   # Precipitation
+      - "tmin"  # Minimum Temperature
+      - "tmax"  # Maximum Temperature
+    date_range: ["1991-01-01", "2020-12-31"] # 30-year period for robust climate analysis
+  gnatsgo:
+    # Configuration for downloading tabular data required for WEPP .sol files
+    # We no longer specify properties, as the new script fetches all component/horizon data
+    job_name: "geomorph_tda_aoi_tabular"
+
+parameters:
+  # CRS for data discovery and web services (WGS84)
+  wgs84_crs: "EPSG:4326"
+  # CRS for geometric operations and analysis (projected)
+  processing_crs: "EPSG:5070"
+  # Parameters for geometric processing
+  border_gap_m: 0
+  overlap_area_tol_m2: 1.0
+  precision_grid_size: 1.0
+
+study_area_selection:
+  cv_provinces:
+    - "VALLEY AND RIDGE"
+    - "PIEDMONT"
+    - "COASTAL PLAIN"
+    - "APPALACHIAN PLATEAUS"
+    - "BLUE RIDGE"
+  external_holdout_province: "BASIN AND RANGE"

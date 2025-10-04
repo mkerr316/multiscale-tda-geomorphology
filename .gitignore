@@ -21,7 +21,19 @@ dist/
 # Docker-related files to ignore
 conda_store/
 
-# Local data, logs, and outputs not for version control
-data/
-logs/
-outputs/
+# --- Project-specific ignores ---
+
+# Ignore large raw data, but allow small, essential data like boundaries
+/data/raw/dem_30m/
+/data/raw/climate_prism/
+/data/raw/soils_gnatsgo/
+
+# Ignore all processed (intermediate) data
+/data/processed/
+
+# Ignore logs and final outputs
+/logs/
+/outputs/
+
+# Agent file
+GEMINI.md

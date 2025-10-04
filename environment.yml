@@ -16,13 +16,18 @@ dependencies:
   - adjustText
   - titlecase
 
-  # geospatial (conda-forge builds)
+  # geospatial
   - geopandas
   - shapely=2.0.*
   - pyogrio
   - pyproj
   - gdal
   - contextily
+  - rioxarray
+  - pystac_client
+  - planetary_computer
+  - tenacity
+  - adlfs
 
   # GPU stack (correct channels)
   - pytorch::pytorch=2.4.*
