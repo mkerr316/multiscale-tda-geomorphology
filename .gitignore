@@ -1,6 +1,7 @@
 # IDE directories
 .idea/
 .vscode/
+.claude/
 
 # Python artifacts
 __pycache__/
