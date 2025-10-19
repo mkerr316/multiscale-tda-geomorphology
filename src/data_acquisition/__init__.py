@@ -5,8 +5,6 @@ This module provides robust, cloud-native acquisition of geospatial data
 with atomic writes, authentication handling, and integrity validation.
 """
 
-from .climate import DaymetAcquisition
-from .soils import Gnatsgo
 from .dem import build_dem_download_jobs_stac
 from .download_core import execute_downloads
 
