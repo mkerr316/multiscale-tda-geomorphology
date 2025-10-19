@@ -53,23 +53,16 @@ For the predictive track ($H_2$), we will model erosion potential using the Wate
 
 ### 15-Week Project Plan
 
-#### Section I: WEPP Parameterization & Foundational Design (Weeks 1-5)
-
-* **Week 1: Scoping, Data Acquisition & Toolchain Finalization**
-    * [x] Finalize study area polygons and hold-out validation area.
-    * [x] Finalize Toolchain: Document libraries for TDA, Geomorphometry, Sampling, and Parallelism.
-    * [ ] Acquire Raw Data: Download all necessary data for WEPP modeling (DEMs, climate, soils).
-    * [ ] Define Covariate Layers: Finalize a comprehensive, three-tiered suite of predictor covariates:
-        * Tier 1 (Foundational): DEM, slope, multiscale local relief, and multiscale wavelet-based roughness.
-        * Tier 2 (Process-Proxy): TWI and SPI.
-        * Tier 3 (Exploratory): Geomorphons, TLSPs, and scalar summaries (e.g., persistence entropy).
-* **Weeks 2-3: WEPP Climate & Soils Parameterization**
-    * [ ] Develop and execute scripts to process raw climate and soil data into WEPP-required `.cli` and `.sol` files.
-* **Week 4: WEPP Model Execution & Target Raster Generation**
-    * [ ] Run the WEPP model to generate the primary target variable: a raster of average annual sediment yield.
-* **Week 5: Pilot Study, Power Analysis & Final Sampling**
-    * [ ] Conduct a pilot analysis on the WEPP output and key covariates to estimate variance and inform a formal power analysis.
-    * [ ] Design and execute the Final Sample Draw using the multiscale stratification scheme and the Local Cube method.
+#### Section I
+* [x] Finalize study area polygons and hold-out validation area.
+* [ ] Acquire Raw Data: Download 10m DEM data (climate and soil data do not need to be downloaded locally)
+* [ ] Define Covariate Layers: Finalize a comprehensive, three-tiered suite of predictor covariates:
+  * Tier 1 (Foundational): DEM, slope, multiscale local relief, and multiscale wavelet-based roughness.
+  * Tier 2 (Process-Proxy): TWI and SPI.
+  * Tier 3 (Exploratory): Geomorphons, TLSPs, and scalar summaries (e.g., persistence entropy).
+* [ ] Run the WEPP model to generate a raster of average annual sediment yield.
+* [ ] Conduct a pilot analysis on the WEPP output and key covariates to estimate variance and inform a formal power analysis.
+* [ ] Design and execute the Final Sample Draw using the multiscale stratification scheme and the Local Cube method.
 
 #### Section II: TDA Pipeline Development & Feature Engineering (Weeks 6-10)
 
