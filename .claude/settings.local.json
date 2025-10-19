@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python diagnose_aoi.py)",
+      "Bash(python -c \"import sys; print(sys.executable)\")",
+      "Bash(\"c:\\Users\\mkerr\\anaconda3\\envs\\multiscale_tda_geomorphology\\python.exe\" diagnose_aoi.py)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
