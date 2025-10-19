@@ -38,3 +38,17 @@ conda_store/
 # Agent file
 GEMINI.md
 AGENTS.md
+
+# Environment variables
+
+# Python cache
+*.pyc
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Data directories (if they are large and not meant to be in git)
+# data/raw/
+# data/processed/
+
+# Partial download files

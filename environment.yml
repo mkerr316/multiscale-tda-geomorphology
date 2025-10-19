@@ -7,9 +7,9 @@ channels:
 dependencies:
   - python=3.11
 
-  # stable ABI for geo
-  - numpy=1.26.*
-  - pandas=2.2.*
+  # Modern scientific Python stack (NumPy 2.x compatible)
+  - numpy>=2.0
+  - pandas>=2.2
   - scipy
   - scikit-learn
   - matplotlib-base
@@ -42,6 +42,7 @@ dependencies:
   - distributed
   - requests
   - psutil
+  - zarr>=3.0  # Zarr 3.x with NumPy 2.x support
 
   # notebooks / IDE
   - ipykernel
