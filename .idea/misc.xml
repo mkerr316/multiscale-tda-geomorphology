@@ -3,5 +3,8 @@
   <component name="Black">
     <option name="sdkName" value="tda_geo" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="tda-geo" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="multiscale_tda_geomorphology" project-jdk-type="Python SDK" />
+  <component name="PyCharmDSProjectLayout">
+    <option name="id" value="JupyterRightHiddenStructureLayout" />
+  </component>
 </project>

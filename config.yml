@@ -11,29 +11,54 @@ paths:
   # --- Key Intermediate Products (Inputs for downstream tasks) ---
   study_areas: "data/processed/study_areas.gpkg"
   external_holdout: "data/processed/external_holdout.gpkg"
+  master_aoi: "data/processed/master_aoi.gpkg"
 
   # --- Raw Data Storage (Products of data acquisition) ---
   dem_dir: "data/raw/dem_30m"
-  climate_dir: "data/raw/climate_prism"
+  climate_dir: "data/raw/climate_daymet"
   soils_dir: "data/raw/soils_gnatsgo"
+
+  # --- Processed Data Products (Derived from raw data) ---
+  climate_cli_dir: "data/processed/climate_cli"
+  soils_sol_dir: "data/processed/soils_sol"
+  dem_clipped_dir: "data/processed/dem_aoi_clipped"
+  covariates_dir: "data/processed/covariates"
+
+  # --- Output Directories (Reports, figures, diagnostics) ---
+  reports_data_acquisition: "outputs/data_acquisition"
+  diagnostic_probes_dir: "outputs/data_acquisition/diagnostic_probes"
+  maps_dir: "outputs/maps"
 
 data_sources:
   dem:
     stac_url: "https://planetarycomputer.microsoft.com/api/stac/v1"
     collection: "3dep-seamless"
-  prism:
-    # Configuration for downloading daily data required for WEPP .cli files
-    # These are downloaded from the Planetary Computer STAC endpoint
-    daily_variables:
-      - "ppt"   # Precipitation
-      - "tmin"  # Minimum Temperature
-      - "tmax"  # Maximum Temperature
-    date_range: ["1991-01-01", "2020-12-31"] # 30-year period for robust climate analysis
+    asset_key: "data"
+    gsd: 10
+  daymet:
+    collection: "daymet-daily-na"
+    # Download ALL Daymet V4 variables for robustness and future-proofing
+    # Daymet provides 7 variables: prcp, tmin, tmax, srad, vp, dayl, swe
+    # WEPP requires: prcp, tmin, tmax, srad (+ vp for dewpoint calculation)
+    # Downloading all variables adds minimal overhead (7 vs 4 = ~75% more data)
+    # but ensures completeness for any future climate analysis needs
+    daily_variables: null  # null = download all available variables
+    date_range: [ "2018-01-01", "2022-12-31" ]
   gnatsgo:
-    # Configuration for downloading tabular data required for WEPP .sol files
-    # We no longer specify properties, as the new script fetches all component/horizon data
-    job_name: "geomorph_tda_aoi_tabular"
-
+    raster_collection: "gnatsgo-rasters"
+    table_collection: "gnatsgo-tables"
+    # --- Gold-Standard: Specify Item IDs and Asset Keys separately ---
+    # Asset key within the raster item
+    raster_asset_key: "mukey"
+    # Item IDs for the specific tables within the table_collection
+    component_item_id: "comp"
+    horizon_item_id: "chorizon"
+    # The asset key for the Parquet file within each tabular item
+    table_item_asset_key: "data"
+    # Output filenames
+    raster_filename: "gnatsgo_mukey.tif"
+    component_filename: "gnatsgo_component.parquet"
+    horizon_filename: "gnatsgo_horizon.parquet"
 parameters:
   # CRS for data discovery and web services (WGS84)
   wgs84_crs: "EPSG:4326"
@@ -43,6 +68,8 @@ parameters:
   border_gap_m: 0
   overlap_area_tol_m2: 1.0
   precision_grid_size: 1.0
+  cv_province_id_col: "PROVINCE"
+  external_holdout_id_col: "PROVINCE"
 
 study_area_selection:
   cv_provinces:
