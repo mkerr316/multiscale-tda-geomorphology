@@ -79,3 +79,20 @@ study_area_selection:
     - "APPALACHIAN PLATEAUS"
     - "BLUE RIDGE"
   external_holdout_province: "BASIN AND RANGE"
+
+# ----------------------------------------------------
+# WEPPcloud Target Variable Generation
+# ----------------------------------------------------
+weppcloud:
+  # Path to the Area of Interest (AOI) shapefile that defines the simulation boundary.
+  aoi_path: "data/raw/boundaries/study_provinces.shp"
+
+  # Number of years for the climate simulation. 100 years is the standard for
+  # generating a stable, long-term average annual sediment yield.
+  simulation_years: 100
+
+  # Directory where the final target raster will be saved.
+  output_directory: "data/processed/target_variable/"
+
+  # A descriptive name for the project run on the WEPPcloud server.
+  project_name: "Multiscale_TDA_Geomorphology_Fall2025"
