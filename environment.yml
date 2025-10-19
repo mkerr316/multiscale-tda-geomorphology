@@ -1,0 +1,61 @@
+name: app
+channels:
+  - pytorch         # PyTorch + meta 'pytorch-cuda' come from HERE
+  - nvidia          # low-level CUDA libs that torch depends on
+  - conda-forge     # geo/science stack
+  - nodefaults
+dependencies:
+  - python=3.11
+
+  # Modern scientific Python stack (NumPy 2.x compatible)
+  - numpy>=2.0
+  - pandas>=2.2
+  - scipy
+  - scikit-learn
+  - matplotlib-base
+  - adjustText
+  - titlecase
+
+  # geospatial
+  - geopandas
+  - shapely=2.0.*
+  - pyogrio
+  - pyproj
+  - gdal
+  - contextily
+  - rioxarray
+  - pystac_client
+  - planetary_computer
+  - tenacity
+  - adlfs
+
+  # GPU stack (correct channels)
+  - pytorch::pytorch=2.4.*
+  - pytorch::pytorch-cuda=12.1   # <-- key fix: from pytorch channel
+  - cupy
+  - whitebox
+  - ripser
+  - persim
+
+  # distributed + utils
+  - dask
+  - distributed
+  - requests
+  - psutil
+  - zarr>=3.0  # Zarr 3.x with NumPy 2.x support
+
+  # notebooks / IDE
+  - ipykernel
+  - notebook
+  - jupyterlab
+  - jupyter_server
+
+  # other
+  - tqdm
+  - ipywidgets
+
+  # typing stubs (pure Python via pip)
+  - pip
+  - pip:
+      - scipy-stubs
+      - jupyter-server-proxy

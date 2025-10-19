@@ -1,0 +1,27 @@
+name: ${COMPOSE_PROJECT_NAME:-tda-geo}
+
+services:
+  # This is now our single, all-purpose service
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tda-geo:latest
+    container_name: ${COMPOSE_PROJECT_NAME:-tda-geo}-dev
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - conda_store:/opt/conda
+    # ADDED: Expose ports here for Jupyter
+    ports:
+      - "127.0.0.1:8888:8888"
+      - "127.0.0.1:8787:8787" # For the Dask Dashboard
+    # Keep the container alive so PyCharm can execute commands inside it
+    command: ["sleep", "infinity"]
+    tty: true
+
+# The separate 'jupyter' service is no longer needed.
+
+volumes:
+  conda_store:
+    driver: local

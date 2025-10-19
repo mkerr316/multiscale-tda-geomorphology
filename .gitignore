@@ -1,0 +1,94 @@
+# IDE directories
+.idea/
+.vscode/
+.claude/
+
+# Python artifacts
+__pycache__/
+*.py[codz]
+*.so
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Environment variables
+.env
+
+# Docker-related files to ignore
+conda_store/
+
+# --- Project-specific ignores ---
+
+# Ignore large raw data, but allow small, essential data like boundaries
+/data/raw/dem_30m/
+
+# Ignore all processed (intermediate) data
+/data/processed/
+
+# Ignore logs and final outputs
+/logs/
+/outputs/
+
+# Agent file
+GEMINI.md
+AGENTS.md
+
+# Environment variables
+
+# Python cache
+*.pyc
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# ArcGIS
+.DS_Store
+Thumbs.db
+venv/
+env/
+*.py[cod]
+*$py.class
+*.gdb/
+*.geodatabase/
+Index/
+.backups/
+*.atb/
+ImportLog/
+*.log
+*.lock
+p*/
+c*/
+*.tif
+*.tiff
+*.img
+*.sid
+*.ecw
+*.raw
+*.asc
+*.sd
+*.gpk
+*.gpkx
+*.ppkx
+*.mpkx
+*.apk
+*.apks
+*.mmpk
+*.slpk
+*.vtpk
+*.spk
+*.3dd
+*.3ws
+*.rlf
+*Overviews/
+*.tfw
+*.msk
+*.ovr
+*.aux.xml
+GpMessages/
+*.code-workspace
+nul
