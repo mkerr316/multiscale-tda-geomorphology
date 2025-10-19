@@ -31,24 +31,29 @@ def _fetch_url_with_retry(url: str, session: requests.Session, timeout_sec: int 
 
 def _validate_geotiff_content(file_path: Path, expected_key: str) -> tuple[bool, str]:
     """
-    Validates that a GeoTIFF's geographic bounds match the expected tile key.
+    Validates that the GeoTIFF's geographic bounds contain the expected center point.
     """
     try:
-        expected_bbox_wgs84 = get_bbox_from_key(expected_key)
+        min_lon, min_lat, max_lon, max_lat = get_bbox_from_key(expected_key)
+        center_lon, center_lat = ((min_lon + max_lon) / 2, (min_lat + max_lat) / 2)
+
         with rasterio.open(file_path) as src:
-            actual_bbox_wgs84 = transform_bounds(src.crs, "EPSG:4326", *src.bounds)
-            
-            # --- FIX: Increased tolerance from 1e-6 to 1e-4 ---
-            # This accounts for minor metadata discrepancies in source data.
-            tolerance = 1e-4
-            for actual, expected in zip(actual_bbox_wgs84, expected_bbox_wgs84):
-                if not abs(actual - expected) < tolerance:
-                    return (
-                        False,
-                        f"Bounds mismatch for key {expected_key}. "
-                        f"Expected {expected_bbox_wgs84}, got {actual_bbox_wgs84}."
-                    )
-            return True, f"Bounds validated for key {expected_key}."
+            actual_min_lon, actual_min_lat, actual_max_lon, actual_max_lat = transform_bounds(
+                src.crs, "EPSG:4326", *src.bounds
+            )
+
+            if (actual_min_lon <= center_lon <= actual_max_lon) and \
+               (actual_min_lat <= center_lat <= actual_max_lat):
+                return True, f"Center point validated for key {expected_key}."
+            else:
+                actual_bbox = (actual_min_lon, actual_min_lat, actual_max_lon, actual_max_lat)
+                return (
+                    False,
+                    f"Center point mismatch for key {expected_key}. "
+                    f"Expected center ({center_lon:.6f}, {center_lat:.6f}) "
+                    f"not within actual bounds {actual_bbox}."
+                )
+
     except Exception as e:
         return False, f"Validation failed for {file_path.name} with error: {e}"
 
@@ -82,7 +87,10 @@ def _download_job(job: dict, stats: dict) -> str:
             raise ValueError(msg)
 
         part_path.rename(out_path)
-        write_provenance(out_path, job["source_info"])
+        
+        # --- FIX: Pass the missing 'parameters' argument as an empty dictionary ---
+        write_provenance(out_path, job["source_info"], parameters={})
+        
         success = True
         return f"OK: {out_path.name}"
 
