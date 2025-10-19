@@ -1,7 +1,0 @@
-<project version="4">
-  <component name="JupyterServers">
-    <servers>
-      <server name="Docker Jupyter" url="http://localhost:8888" token="" default="true" />
-    </servers>
-  </component>
-</project>
