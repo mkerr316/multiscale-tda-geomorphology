@@ -1,20 +1,22 @@
-"""
-Core download utilities with atomic writes, retry logic, and integrity validation.
-"""
+# src/data_acquisition/download_core.py
 
 from __future__ import annotations
 import logging
 import threading
+import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import planetary_computer
 import requests
 import rasterio
+from rasterio.warp import transform_bounds
 from tenacity import retry, stop_after_attempt, wait_exponential
 from tqdm.auto import tqdm
 
-from geoio_utils.provenance import write_provenance
+# Assuming these utilities exist from your project structure
+from src.geoio_utils.provenance import write_provenance
+from src.utils.coords import get_bbox_from_key
 
 log = logging.getLogger(__name__)
 
@@ -22,117 +24,102 @@ log = logging.getLogger(__name__)
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
 def _fetch_url_with_retry(url: str, session: requests.Session, timeout_sec: int = 60):
     """A resilient GET request wrapper using tenacity."""
-    response = session.get(url, stream=True, timeout=timeout_sec)
+    # Sign the request if it's a planetary computer URL
+    signed_url = planetary_computer.sign(url)
+    response = session.get(signed_url, stream=True, timeout=timeout_sec)
     response.raise_for_status()
     return response
 
 
-def _validate_geotiff(file_path: Path) -> tuple[bool, str]:
+def _validate_geotiff_content(file_path: Path, expected_key: str) -> tuple[bool, str]:
     """
-    Validate that a GeoTIFF file is not corrupt or empty.
+    Validates that a GeoTIFF's geographic bounds match the expected tile key.
+
+    This is the core of the fix. It prevents data duplication by ensuring the
+    downloaded content is geographically correct.
 
     Args:
-        file_path: Path to GeoTIFF file
+        file_path: Path to the downloaded GeoTIFF file.
+        expected_key: The USGS tile key we expected to download (e.g., 'n45w094').
 
     Returns:
-        Tuple of (is_valid, error_message)
+        A tuple of (is_valid, message).
     """
     try:
+        expected_bbox_wgs84 = get_bbox_from_key(expected_key)
+
         with rasterio.open(file_path) as src:
-            # Check if file has valid dimensions
-            if src.width == 0 or src.height == 0:
-                return False, "Zero dimensions"
+            # Transform raster bounds to WGS84 for a consistent comparison
+            actual_bbox_wgs84 = transform_bounds(
+                src.crs, "EPSG:4326", *src.bounds
+            )
 
-            # Check if file has valid CRS
-            if src.crs is None:
-                return False, "Missing CRS"
-
-            # Try to read a small sample to ensure data is accessible
-            window = rasterio.windows.Window(0, 0, min(100, src.width), min(100, src.height))
-            data = src.read(1, window=window)
-
-            # Check if data is all nodata
-            if src.nodata is not None and (data == src.nodata).all():
-                return False, "All nodata values"
-
-            return True, "Valid"
+            # Compare with a tolerance to account for float precision issues
+            for actual, expected in zip(actual_bbox_wgs84, expected_bbox_wgs84):
+                if not abs(actual - expected) < 1e-6:
+                    return (
+                        False,
+                        f"Bounds mismatch for key {expected_key}. "
+                        f"Expected {expected_bbox_wgs84}, got {actual_bbox_wgs84}."
+                    )
+            return True, f"Bounds validated for key {expected_key}."
 
     except Exception as e:
-        return False, f"Error reading file: {str(e)}"
+        return False, f"Validation failed for {file_path.name} with error: {e}"
 
 
-def _download_job(job: dict, stats: dict, timeout_sec: int = 60):
-    """
-    Worker function to download a single file with atomic writes and validation.
-
-    Downloads to a temporary `.part` file, validates the download,
-    and only renames to final path if validation passes.
-    """
-    url, out_path = job["url"], job["out_path"]
-    part_path = out_path.with_suffix(out_path.suffix + '.part')
-
-    # Skip if valid file already exists
-    if out_path.exists():
-        is_valid, msg = _validate_geotiff(out_path)
-        if is_valid:
-            with stats["lock"]:
-                stats["skipped"] += 1
-            return f"SKIP (valid file exists): {out_path.name}"
-        else:
-            log.warning(f"Existing file invalid ({msg}), re-downloading: {out_path.name}")
-            out_path.unlink()
+def _download_job(job: dict, stats: dict) -> str:
+    """Target function for a single download thread."""
+    url = job["url"]
+    out_path = Path(job["out_path"])
+    key = job["key"]
+    part_path = out_path.with_suffix(out_path.suffix + ".part")
+    success = False
 
     try:
-        # Use a new session for each thread for thread safety
-        with requests.Session() as session:
-            session.headers.update({"User-Agent": "UGA-TDA-Geomorphology-Research/1.0"})
-            signed_url = planetary_computer.sign(url)
-            response = _fetch_url_with_retry(signed_url, session, timeout_sec)
+        if out_path.exists() and out_path.stat().st_size > 0:
+            is_valid, _ = _validate_geotiff_content(out_path, key)
+            if is_valid:
+                with stats["lock"]:
+                    stats["skipped"] += 1
+                return f"SKIP: {out_path.name} (already exists and is valid)"
 
-            # Download to temporary file
+        part_path.parent.mkdir(parents=True, exist_ok=True)
+        with requests.Session() as session:
+            response = _fetch_url_with_retry(url, session)
             with open(part_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
 
-        # Validate the downloaded file
-        is_valid, msg = _validate_geotiff(part_path)
+        # --- NEW VALIDATION STEP ---
+        is_valid, msg = _validate_geotiff_content(part_path, key)
         if not is_valid:
-            log.error(f"Downloaded file failed validation: {out_path.name} ({msg})")
-            part_path.unlink()
-            with stats["lock"]:
-                stats["failed"] += 1
-            return f"FAIL: {out_path.name} | Validation failed: {msg}"
+            log.error(f"Validation failed for {out_path.name}: {msg}")
+            raise ValueError(msg) # Raise error to trigger failure logic
 
-        # Atomic move to final destination
         part_path.rename(out_path)
-
-        with stats["lock"]:
-            stats["downloaded"] += 1
-
-        # Create provenance file after successful download
-        if "source_info" in job:
-            write_provenance(out_path, job["source_info"], parameters={})
-
+        write_provenance(out_path, job["source_info"])
+        success = True
         return f"OK: {out_path.name}"
 
     except Exception as e:
-        log.error(f"FAIL: {out_path.name} | Error: {e}")
-        # Clean up the partial file if it exists
+        log.error(f"Download failed for {out_path.name}: {e}")
+        # Clean up partial file on failure
         if part_path.exists():
             part_path.unlink()
+        return f"FAIL: {out_path.name} ({e})"
+
+    finally:
         with stats["lock"]:
-            stats["failed"] += 1
-        return f"FAIL: {out_path.name} | Error: {e}"
+            if success:
+                stats["downloaded"] += 1
+            else:
+                stats["failed"] += 1
 
 
-def execute_downloads(jobs: list, description: str, max_workers: int):
+def parallel_download(jobs: list[dict], description: str, max_workers: int):
     """
-    Execute download jobs in parallel with progress tracking and validation.
-
-    Args:
-        jobs: List of download job dicts with 'url', 'out_path', 'key', 'source_info'
-        description: Human-readable description for progress bar
-        max_workers: Maximum number of concurrent download threads
+    Manages a pool of threads to download a list of files concurrently.
     """
     if not jobs:
         log.info(f"No new files to download for {description}.")
@@ -142,7 +129,7 @@ def execute_downloads(jobs: list, description: str, max_workers: int):
         "lock": threading.Lock(),
         "skipped": 0,
         "downloaded": 0,
-        "failed": 0
+        "failed": 0,
     }
 
     log.info(f"⬇️  Starting parallel download for {len(jobs)} {description} files...")
@@ -155,7 +142,7 @@ def execute_downloads(jobs: list, description: str, max_workers: int):
                 as_completed(future_to_job),
                 total=len(jobs),
                 desc=description,
-                unit="file"
+                unit="file",
             )
         ]
 
@@ -165,12 +152,10 @@ def execute_downloads(jobs: list, description: str, max_workers: int):
     log.info(f"Download Summary for {description}:")
     log.info(f"  Downloaded: {stats['downloaded']}")
     log.info(f"  Skipped:    {stats['skipped']} (valid files already exist)")
-    log.info(f"  Failed:     {stats['failed']}")
+    log.info(f"  Failed:     {stats['failed']} (includes validation failures)")
     log.info("=" * 70)
 
     if failures:
-        log.warning(f"Completed with {len(failures)} failures:")
-        for failure in failures[:5]:  # Show first 5 failures
-            log.warning(f"  {failure}")
-        if len(failures) > 5:
-            log.warning(f"  ... and {len(failures) - 5} more")
+        log.error("--- Download Failures ---")
+        for f in failures:
+            log.error(f"  - {f}")
