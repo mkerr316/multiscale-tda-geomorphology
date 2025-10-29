@@ -1,0 +1,63 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "37bebe4d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "# === 9. Acquire gNATSGO Tabular Soil Data ===\n",
+    "\n",
+    "def acquire_gnatsgo_tabular_data(aoi_master: gpd.GeoDataFrame) -> None:\n",
+    "    \"\"\"Downloads gNATSGO tabular component and horizon data for the AOI using pygnatsgofetch.\"\"\"\n",
+    "    log.info(\"--- Starting gNATSGO Tabular Soil Data Acquisition ---\")\n",
+    "\n",
+    "    output_path = SOILS_OUT_DIR / f\"{GNATSGO_JOB_NAME}_tabular_data.csv\"\n",
+    "    if output_path.exists():\n",
+    "        log.info(f\"✅ Tabular gNATSGO data file '{output_path.name}' already exists.\")\n",
+    "        return\n",
+    "\n",
+    "    log.info(f\"Fetching tabular soil data for job '{GNATSGO_JOB_NAME}'. This may take several minutes...\")\n",
+    "\n",
+    "    try:\n",
+    "        gnatsgo_fetcher = gnatsgo.Gnatsgo(SOILS_OUT_DIR)\n",
+    "        gnatsgo_fetcher.get_data(shapefile=aoi_master, job_name=GNATSGO_JOB_NAME)\n",
+    "\n",
+    "        if output_path.exists() and output_path.stat().st_size > 0:\n",
+    "            try:\n",
+    "                record_count = int(pd.read_csv(output_path).shape[0])\n",
+    "            except Exception:\n",
+    "                record_count = None\n",
+    "\n",
+    "            write_provenance(\n",
+    "                artifact_path=output_path,\n",
+    "                source_info={\"database\": \"USDA-NRCS Soil Data Access\", \"tool\": \"pygnatsgofetch\"},\n",
+    "                parameters={\n",
+    "                    \"job_name\": GNATSGO_JOB_NAME,\n",
+    "                    \"record_count\": record_count,\n",
+    "                },\n",
+    "            )\n",
+    "            log.info(f\"✅ gNATSGO tabular data acquisition complete. See '{output_path.name}'.\")\n",
+    "        elif output_path.exists():\n",
+    "            log.info(\"gNATSGO query returned no data for the AOI; an empty marker file was created.\")\n",
+    "        else:\n",
+    "            log.warning(\"gNATSGO data fetch did not produce an output file.\")\n",
+    "\n",
+    "    except Exception as e:\n",
+    "        log.error(f\"An error occurred during gNATSGO processing: {e}\", exc_info=True)\n",
+    "\n",
+    "# --- Execute gNATSGO Workflow ---\n",
+    "acquire_gnatsgo_tabular_data(master_aodf)\n"
+   ]
+  }
+ ],
+ "metadata": {
+  "language_info": {
+   "name": "python"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

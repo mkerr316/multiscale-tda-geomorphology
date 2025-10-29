@@ -1,0 +1,68 @@
+# GPU-enabled override for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.gpu.yml up
+#
+# This file extends the base docker-compose.yml with GPU support for NVIDIA GPUs.
+# Only use this if you have:
+#   1. NVIDIA GPU hardware
+#   2. NVIDIA drivers installed (version >= 525 for CUDA 12.1)
+#   3. NVIDIA Container Toolkit installed
+#
+# Test GPU access before using this file:
+#   docker run --rm --gpus all nvidia/cuda:12.1.0-base-ubuntu22.04 nvidia-smi
+
+name: ${COMPOSE_PROJECT_NAME:-tda-geo}
+
+services:
+  dev:
+    # Enable GPU access via NVIDIA Container Toolkit
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all  # Use all available GPUs
+              capabilities: [gpu, compute, utility]
+
+    # GPU-specific environment variables
+    environment:
+      # Enable NVIDIA runtime
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+      # CuPy configuration
+      - CUPY_CACHE_DIR=/workspace/.cupy_cache
+      - CUPY_TF32=1  # Enable TF32 for faster matrix ops on Ampere+ GPUs
+
+      # PyTorch configuration
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
+
+      # Prevent underlying libraries from using multiple threads
+      # (Dask will manage parallelism)
+      - OMP_NUM_THREADS=1
+      - MKL_NUM_THREADS=1
+      - OPENBLAS_NUM_THREADS=1
+      - NUMEXPR_NUM_THREADS=1
+
+    # Increase shared memory for GPU operations
+    shm_size: '4gb'  # Increased from 2gb for GPU workloads
+
+    # Optional: Resource limits (adjust based on your hardware)
+    # Uncomment to set hard limits
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '16'
+    #       memory: 32G
+    #       reservations:
+    #         devices:
+    #           - driver: nvidia
+    #             count: all
+    #             capabilities: [gpu]
+
+    # Additional volume for CuPy cache persistence
+    volumes:
+      - cupy_cache:/workspace/.cupy_cache
+
+volumes:
+  cupy_cache:
+    driver: local

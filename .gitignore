@@ -1,7 +1,8 @@
 # IDE directories
 .idea/
-.vscode/
+# Note: .vscode/ is now committed with project settings for consistency
 .claude/
+*.code-workspace
 
 # Python artifacts
 __pycache__/
@@ -16,8 +17,9 @@ dist/
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints
 
-# Environment variables
-.env
+# Environment variables (keep .env.example but ignore .env)
+.env.local
+.env.*.local
 
 # Docker-related files to ignore
 conda_store/
@@ -51,6 +53,7 @@ AGENTS.md
 Thumbs.db
 venv/
 env/
+.conda/
 *.py[cod]
 *$py.class
 *.gdb/
@@ -90,5 +93,20 @@ c*/
 *.ovr
 *.aux.xml
 GpMessages/
-*.code-workspace
+# Additional Docker/Development artifacts
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 nul

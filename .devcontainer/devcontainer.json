@@ -1,0 +1,153 @@
+{
+  "name": "TDA Geomorphology Dev Container",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "dev",
+  "workspaceFolder": "/workspace",
+
+  // Wait for container to be ready
+  "waitFor": "onCreateCommand",
+
+  // Lifecycle hooks
+  "onCreateCommand": "echo 'Container created! Python available at /opt/conda/envs/app/bin/python'",
+  "postStartCommand": "echo 'Container started. Jupyter available at http://localhost:8888'",
+
+  // VS Code customizations
+  "customizations": {
+    "vscode": {
+      // Extensions to install
+      "extensions": [
+        // Python development
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-keymap",
+        "ms-toolsai.jupyter-renderers",
+
+        // Code quality
+        "charliermarsh.ruff",
+        "ms-python.black-formatter",
+
+        // Git
+        "mhutchie.git-graph",
+        "eamodio.gitlens",
+
+        // Docker
+        "ms-azuretools.vscode-docker",
+
+        // Markdown
+        "yzhang.markdown-all-in-one",
+        "bierner.markdown-preview-github-styles",
+
+        // Utilities
+        "streetsidesoftware.code-spell-checker",
+        "editorconfig.editorconfig",
+        "esbenp.prettier-vscode"
+      ],
+
+      // Settings
+      "settings": {
+        // Python interpreter path
+        "python.defaultInterpreterPath": "/opt/conda/envs/app/bin/python",
+        "python.condaPath": "/opt/conda/bin/conda",
+
+        // Linting and formatting
+        "python.analysis.typeCheckingMode": "basic",
+        "python.analysis.autoImportCompletions": true,
+        "python.analysis.inlayHints.functionReturnTypes": true,
+
+        // Ruff (modern linter/formatter)
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit",
+            "source.fixAll": "explicit"
+          }
+        },
+
+        // Jupyter
+        "jupyter.jupyterServerType": "local",
+        "jupyter.notebookFileRoot": "${workspaceFolder}",
+
+        // Terminal
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash",
+            "args": ["-l"]
+          }
+        },
+
+        // Files
+        "files.watcherExclude": {
+          "**/data/**": true,
+          "**/outputs/**": true,
+          "**/.git/objects/**": true,
+          "**/.git/subtree-cache/**": true,
+          "**/node_modules/**": true,
+          "**/__pycache__/**": true,
+          "**/.ipynb_checkpoints/**": true
+        },
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/.ipynb_checkpoints": true,
+          "**/*.egg-info": true
+        },
+
+        // Editor
+        "editor.rulers": [88, 120],
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": false,
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+
+        // Git
+        "git.enableSmartCommit": true,
+        "git.confirmSync": false,
+
+        // Search
+        "search.exclude": {
+          "**/data": true,
+          "**/outputs": true,
+          "**/.ipynb_checkpoints": true,
+          "**/__pycache__": true,
+          "**/*.egg-info": true
+        }
+      }
+    }
+  },
+
+  // Features to add to the container
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false,
+      "installOhMyZsh": false,
+      "upgradePackages": false
+    }
+  },
+
+  // Forward ports
+  "forwardPorts": [8888, 8787, 6006],
+  "portsAttributes": {
+    "8888": {
+      "label": "Jupyter Lab",
+      "onAutoForward": "notify"
+    },
+    "8787": {
+      "label": "Dask Dashboard",
+      "onAutoForward": "silent"
+    },
+    "6006": {
+      "label": "TensorBoard",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // Container user
+  "remoteUser": "root",
+
+  // Environment variables
+  "remoteEnv": {
+    "PYTHONPATH": "/workspace/src:${containerEnv:PYTHONPATH}"
+  }
+}

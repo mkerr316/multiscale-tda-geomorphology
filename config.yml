@@ -34,7 +34,10 @@ data_sources:
     stac_url: "https://planetarycomputer.microsoft.com/api/stac/v1"
     collection: "3dep-seamless"
     asset_key: "data"
-    gsd: 10
+    # Ground sampling distance (resolution) in meters
+    # 10 = 10m resolution (higher detail, slower downloads, more disk space)
+    # 30 = 30m resolution (faster downloads, less disk space, RECOMMENDED for development)
+    gsd: 30
   daymet:
     collection: "daymet-daily-na"
     # Download ALL Daymet V4 variables for robustness and future-proofing
@@ -96,3 +99,40 @@ weppcloud:
 
   # A descriptive name for the project run on the WEPPcloud server.
   project_name: "Multiscale_TDA_Geomorphology_Fall2025"
+
+# ----------------------------------------------------
+# Computational Resources & GPU Configuration
+# ----------------------------------------------------
+computational:
+  # GPU usage policy:
+  #   - "auto": Use GPU if available, fallback to CPU if not (RECOMMENDED)
+  #   - "force": Require GPU, fail if not available
+  #   - "never": Always use CPU even if GPU is available
+  use_gpu: "auto"
+
+  # Fraction of GPU VRAM to reserve for computations (0.0-1.0)
+  # 0.8 = 80% of VRAM, leaving 20% buffer for OS/other processes
+  gpu_memory_fraction: 0.8
+
+  # If true, fall back to CPU if GPU runs out of memory
+  # If false, raise error on GPU OOM
+  fallback_to_cpu_on_oom: true
+
+  # Dask worker configuration (applies to both CPU and GPU workers)
+  dask:
+    # Number of worker processes
+    # "auto" = number of physical CPU cores
+    # Can override with integer (e.g., 8 for 8 workers)
+    n_workers: "auto"
+
+    # Threads per worker
+    # 1 is recommended to avoid nested parallelism issues
+    threads_per_worker: 1
+
+    # Memory limit per worker
+    # "auto" = (80% of available RAM) / n_workers
+    # Can override with string (e.g., "4GB" for 4 GB per worker)
+    memory_limit: "auto"
+
+    # Dashboard port for monitoring (http://localhost:8787)
+    dashboard_port: 8787

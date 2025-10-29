@@ -1,8 +1,9 @@
 name: app
 channels:
-  - pytorch         # PyTorch + meta 'pytorch-cuda' come from HERE
-  - nvidia          # low-level CUDA libs that torch depends on
-  - conda-forge     # geo/science stack
+  - pytorch # PyTorch + meta 'pytorch-cuda' come from HERE
+  - nvidia # low-level CUDA libs that torch depends on
+  - rapidsai # GPU-accelerated data science (dask-cuda)
+  - conda-forge # geo/science stack
   - nodefaults
 dependencies:
   - python=3.11
@@ -24,25 +25,25 @@ dependencies:
   - gdal
   - contextily
   - rioxarray
-  - pystac_client
-  - planetary_computer
+  - pystac-client
   - tenacity
   - adlfs
 
   # GPU stack (correct channels)
   - pytorch::pytorch=2.4.*
-  - pytorch::pytorch-cuda=12.1   # <-- key fix: from pytorch channel
+  - pytorch::pytorch-cuda=12.1 # <-- key fix: from pytorch channel
   - cupy
   - whitebox
   - ripser
   - persim
 
-  # distributed + utils
+  # distributed + utils (GPU-enabled)
   - dask
   - distributed
+  - dask-cuda # GPU-accelerated Dask workers
   - requests
   - psutil
-  - zarr>=3.0  # Zarr 3.x with NumPy 2.x support
+  - zarr>=3.0 # Zarr 3.x with NumPy 2.x support
 
   # notebooks / IDE
   - ipykernel
@@ -58,4 +59,5 @@ dependencies:
   - pip
   - pip:
       - scipy-stubs
+      - planetary_computer
       - jupyter-server-proxy

@@ -1,27 +1,85 @@
 name: ${COMPOSE_PROJECT_NAME:-tda-geo}
 
 services:
-  # This is now our single, all-purpose service
   dev:
     build:
       context: .
       dockerfile: Dockerfile
+      # Cache build dependencies for faster rebuilds
+      cache_from:
+        - tda-geo:latest
     image: tda-geo:latest
     container_name: ${COMPOSE_PROJECT_NAME:-tda-geo}-dev
-    working_dir: /workspace
-    volumes:
-      - .:/workspace
-      - conda_store:/opt/conda
-    # ADDED: Expose ports here for Jupyter
-    ports:
-      - "127.0.0.1:8888:8888"
-      - "127.0.0.1:8787:8787" # For the Dask Dashboard
-    # Keep the container alive so PyCharm can execute commands inside it
-    command: ["sleep", "infinity"]
+
+    # Platform specification (important for ARM Macs)
+    platform: linux/amd64
+
+    # Enable interactive mode for shells and IDEs
+    stdin_open: true
     tty: true
 
-# The separate 'jupyter' service is no longer needed.
+    # Auto-restart on failure (but not if manually stopped)
+    restart: unless-stopped
+
+    working_dir: /workspace
+
+    # Volume mounts
+    volumes:
+      # Bind mount project directory
+      - .:/workspace
+      # Persistent conda environment (faster rebuilds)
+      - conda_store:/opt/conda
+      # Optional: Cache pip packages
+      - pip_cache:/home/mambauser/.cache/pip
+      # Optional: Persistent Jupyter runtime
+      - jupyter_runtime:/home/mambauser/.local/share/jupyter
+
+    # Port mappings
+    ports:
+      - "${JUPYTER_PORT:-8888}:8888"        # Jupyter Lab/Server
+      - "${DASK_DASHBOARD_PORT:-8787}:8787" # Dask dashboard
+      - "${TENSORBOARD_PORT:-6006}:6006"    # TensorBoard (if needed)
+
+    # Environment variables
+    environment:
+      # Jupyter settings (can be overridden in .env)
+      - JUPYTER_ENABLE_LAB=${JUPYTER_ENABLE_LAB:-yes}
+      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-}
+      # Python optimization
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      # Conda/Mamba settings
+      - MAMBA_NO_BANNER=1
+      - MAMBA_ROOT_PREFIX=/opt/conda
+      # User settings for IDE compatibility
+      - USER=mambauser
+      - HOME=/home/mambauser
+
+    # Health check to ensure container is ready
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Shared memory size (important for PyTorch DataLoader with multiple workers)
+    shm_size: '2gb'
+
+    # Resource limits (optional - adjust based on your machine)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '8'
+    #       memory: 16G
+    #     reservations:
+    #       cpus: '4'
+    #       memory: 8G
 
 volumes:
   conda_store:
+    driver: local
+  pip_cache:
+    driver: local
+  jupyter_runtime:
     driver: local

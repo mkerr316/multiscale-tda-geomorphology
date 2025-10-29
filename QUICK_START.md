@@ -1,137 +1,79 @@
-# Quick Start: Data Acquisition
+# Quick Start Guide
 
-**Status**: ✅ Ready to use (all import conflicts resolved)
+**5-Minute Setup for Experienced Users**
 
-## What Was Fixed
+## Prerequisites
 
-### Issue: Python Built-in `io` Module Conflict
-The package name `io` conflicted with Python's built-in `io` module, causing:
-```
-ModuleNotFoundError: No module named 'io.provenance'; 'io' is not a package
-```
+- Docker Desktop installed and running
+- Git installed
 
-### Solution: Renamed to `geoio_utils`
-```
-src/io/          →  src/geoio_utils/
-```
+## Setup
 
-All imports updated throughout the codebase.
-
-## Current Structure
-
-```
-src/
-├── data_acquisition/          ✅ DEM, Daymet, gNATSGO
-│   ├── climate.py            # DaymetAcquisition
-│   ├── soils.py              # Gnatsgo
-│   ├── dem.py                # build_dem_download_jobs_stac
-│   └── download_core.py      # execute_downloads + validation
-│
-├── geoio_utils/              ✅ I/O utilities (renamed from 'io')
-│   ├── provenance.py         # write_provenance, get_git_commit
-│   └── raster.py             # safe_union_all, ensure_crs
-│
-└── utils/                    ✅ General utilities
-    ├── logging.py            # setup_colored_logging
-    └── coords.py             # get_key_from_sw_corner, get_bbox_from_key
-```
-
-## How to Run Notebook 1.2
-
-### 1. Verify Structure
 ```bash
-python verify_structure.py
+# 1. Clone and enter project
+git clone <repo-url>
+cd multiscale_tda_geomorphology
+
+# 2. Start container
+make up
+
+# 3. Access Jupyter
+# Open browser to: http://localhost:8888
 ```
 
-Should show:
-```
-✅ SUCCESS: All expected files are present!
-```
+## Daily Usage
 
-### 2. Restart Jupyter Kernel
+```bash
+# Start
+make up
 
-**IMPORTANT**: Click `Kernel → Restart Kernel` to clear cached imports
+# Stop
+make down
 
-### 3. Run Cells 1-9
+# Shell access
+make shell
 
-**Cell 1** - Imports (should work now):
-```python
-from data_acquisition import DaymetAcquisition, Gnatsgo, ...
-from geoio_utils import write_provenance, safe_union_all, ...
-from utils import setup_colored_logging, ...
-```
+# View logs
+make logs
 
-**Expected output**:
-```
-======================================================================
-DATA ACQUISITION SETUP
-======================================================================
-✅ Setup complete.
+# Rebuild (after changing environment.yml)
+make rebuild
 ```
 
-**Cells 2-7** - DEM acquisition
-**Cell 8** - Daymet acquisition
-**Cell 9** - gNATSGO acquisition
+## IDE Setup
 
-## Key Features
+### VS Code
+1. Install "Dev Containers" extension
+2. Open folder → Click "Reopen in Container"
+3. Done!
 
-### ✅ File Validation
-- DEM files validated before acceptance
-- Corrupt files automatically re-downloaded
-- Valid files skipped (no unnecessary downloads)
+### PyCharm/DataSpell
+1. Settings → Python Interpreter
+2. Add → Docker Compose
+3. Service: `dev`
+4. Python path: `/opt/conda/envs/app/bin/python`
 
-### ✅ Atomic Downloads
-- Downloads to `.part` files
-- Validates before renaming
-- Auto-cleanup on failure
+## Key Paths
 
-### ✅ Token Management
-- Daymet data computed before writing
-- Prevents Azure auth token expiration
+- **Python interpreter**: `/opt/conda/envs/app/bin/python`
+- **Jupyter URL**: `http://localhost:8888`
+- **Dask Dashboard**: `http://localhost:8787`
+- **Workspace**: `/workspace` (mounted to project root)
 
-### ✅ Comprehensive Logging
-```
-======================================================================
-Download Summary for DEM Tiles:
-  Downloaded: 45
-  Skipped:    337 (valid files already exist)
-  Failed:     0
-======================================================================
+## Help
+
+```bash
+make help          # See all commands
+make env-info      # Check Python/package versions
+make jupyter-url   # Get Jupyter URL with token
 ```
 
 ## Troubleshooting
 
-### Still seeing import errors?
+```bash
+make logs          # Check logs
+make status        # Container status
+make rebuild       # Nuclear option: rebuild everything
+```
 
-1. **Restart kernel** (cached imports from old structure)
-2. **Check sys.path**:
-   ```python
-   import sys
-   print(PROJECT_ROOT / 'src' in sys.path)  # Should be True
-   ```
-
-### Validation failures?
-
-- **Re-run cell**: Atomic downloads will retry
-- **Check disk space**: Low space causes partial writes
-- **Check network**: Intermittent connections cause corruption
-
-## Documentation
-
-- **[SRC_RESTRUCTURE_COMPLETE.md](docs/SRC_RESTRUCTURE_COMPLETE.md)** - Full details
-- **[PROPOSED_SRC_STRUCTURE.md](docs/PROPOSED_SRC_STRUCTURE.md)** - Future structure
-- **[Project Proposal Fall 2025.md](docs/Project Proposal Fall 2025.md)** - 15-week plan
-
-## Success Checklist
-
-When notebook 1.2 completes successfully:
-
-✅ **382 DEM tiles** validated (or documented as unavailable)
-✅ **Daymet .zarr** with all variables (2018-2022)
-✅ **gNATSGO CSV** with merged component+horizon data
-✅ **Provenance files** (.meta.json) for all artifacts
-✅ **No corrupt files** in output directories
-
----
-
-**Ready?** Restart your kernel and run notebook 1.2! 🚀
+**Full documentation**: See [README.md](README.md) and [SETUP_GUIDE.md](SETUP_GUIDE.md)

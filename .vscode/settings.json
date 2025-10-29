@@ -1,0 +1,63 @@
+{
+  // Python Configuration
+  "python.defaultInterpreterPath": "/opt/conda/envs/app/bin/python",
+  "python.condaPath": "/opt/conda/bin/conda",
+
+  // Linting and Type Checking
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.inlayHints.functionReturnTypes": true,
+
+  // Formatting with Ruff (modern, fast)
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.fixAll": "explicit"
+    }
+  },
+
+  // Jupyter
+  "jupyter.jupyterServerType": "local",
+  "jupyter.notebookFileRoot": "${workspaceFolder}",
+
+  // Editor
+  "editor.rulers": [88, 120],
+  "editor.formatOnSave": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  // Files to exclude from explorer
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.ipynb_checkpoints": true,
+    "**/*.egg-info": true
+  },
+
+  // Files to exclude from file watcher
+  "files.watcherExclude": {
+    "**/data/**": true,
+    "**/outputs/**": true,
+    "**/.git/objects/**": true,
+    "**/node_modules/**": true,
+    "**/__pycache__/**": true,
+    "**/.ipynb_checkpoints/**": true
+  },
+
+  // Search exclusions
+  "search.exclude": {
+    "**/data": true,
+    "**/outputs": true,
+    "**/.ipynb_checkpoints": true,
+    "**/__pycache__": true,
+    "**/*.egg-info": true
+  },
+
+  // Git
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+
+  // Terminal
+  "terminal.integrated.defaultProfile.linux": "bash"
+}
