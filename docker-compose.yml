@@ -57,7 +57,7 @@ services:
 
     # Health check to ensure container is ready
     healthcheck:
-      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      test: ["CMD", "/opt/conda/envs/app/bin/python", "-c", "import sys; sys.exit(0)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -65,6 +65,12 @@ services:
 
     # Shared memory size (important for PyTorch DataLoader with multiple workers)
     shm_size: '2gb'
+
+    # DNS configuration (helps with network issues)
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 1.1.1.1
 
     # Resource limits (optional - adjust based on your machine)
     # deploy:

@@ -37,6 +37,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Text editors (useful for container debugging)
     vim \
     nano \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
     # Clean up
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

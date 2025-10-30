@@ -97,6 +97,7 @@ GpMessages/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.cupy_cache/
 htmlcov/
 .coverage
 
@@ -110,3 +111,11 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 nul
+C:/
+
+# Temporary troubleshooting scripts
+diagnose_*.sh
+fix_*.sh
+install_*.sh
+install_*.ps1
+setup_*.ps1
