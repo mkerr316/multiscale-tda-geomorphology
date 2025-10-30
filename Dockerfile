@@ -79,6 +79,10 @@ RUN mkdir -p /workspace/bin && \
     ln -s /opt/conda/envs/app/bin/pip /workspace/bin/pip && \
     ln -s /opt/conda/envs/app/bin/jupyter /workspace/bin/jupyter
 
+# Create conda symlink to micromamba for Jupyter %conda magic compatibility
+USER root
+RUN ln -s /usr/bin/micromamba /opt/conda/envs/app/bin/conda
+
 # --- Seedable conda copy (for volume persistence) ---
 USER root
 RUN cp -a /opt/conda /opt/conda_image && \

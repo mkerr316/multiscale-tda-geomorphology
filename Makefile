@@ -87,12 +87,12 @@ rebuild: ## Rebuild image from scratch (no cache)
 .PHONY: shell
 shell: ## Open a bash shell in the container
 	@echo "$(GREEN)Opening shell in container...$(NC)"
-	docker exec -it $(CONTAINER_NAME) bash
+	docker exec -it $(CONTAINER_NAME) bash -c 'export PATH="/opt/conda/envs/app/bin:/opt/conda/bin:/opt/conda/condabin:$$PATH"; exec bash'
 
 .PHONY: shell-root
 shell-root: ## Open a root bash shell in the container
 	@echo "$(GREEN)Opening root shell in container...$(NC)"
-	docker exec -it -u root $(CONTAINER_NAME) bash
+	docker exec -it -u root $(CONTAINER_NAME) bash -c 'export PATH="/opt/conda/envs/app/bin:/opt/conda/bin:/opt/conda/condabin:$$PATH"; exec bash'
 
 .PHONY: python
 python: ## Start Python REPL in container
